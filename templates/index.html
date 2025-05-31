@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>manu.ai — Kenyan Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-yellow-100 to-green-100 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-green-700 text-white py-4 shadow-md">
+        <h1 class="text-center text-3xl font-bold">🇰🇪 manu.ai</h1>
+        <p class="text-center text-sm">The most chill Kenyan chatbot 😎</p>
+    </header>
+
+    <!-- Chat area -->
+    <main class="flex-1 overflow-auto px-4 py-6" id="chatBox">
+        <!-- Chat messages will appear here -->
+    </main>
+
+    <!-- Message input -->
+    <form id="chatForm" class="bg-white border-t p-4 flex gap-2">
+        <input type="text" id="userInput" class="flex-1 border rounded-xl p-2 focus:outline-none"
+            placeholder="Sema kitu hapa..." autocomplete="off" />
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700">Tuma</button>
+    </form>
+
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const form = document.getElementById('chatForm');
+        const userInput = document.getElementById('userInput');
+
+        function addMessage(content, sender = 'user') {
+            const msg = document.createElement('div');
+            msg.className = `my-2 p-3 max-w-[80%] rounded-xl shadow ${sender === 'user' ? 'bg-green-200 self-end ml-auto text-right' : 'bg-white self-start mr-auto'
+                }`;
+            msg.textContent = content;
+            chatBox.appendChild(msg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            userInput.value = '';
+
+            // Typing indicator
+            const typingMsg = document.createElement('div');
+            typingMsg.className = 'my-2 p-3 bg-gray-200 max-w-[60%] rounded-xl shadow';
+            typingMsg.textContent = 'manu.ai is typing...';
+            chatBox.appendChild(typingMsg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+                chatBox.removeChild(typingMsg);
+                addMessage(data.reply, 'bot');
+            } catch (err) {
+                chatBox.removeChild(typingMsg);
+                addMessage("😢 Pole, network ni mbaya. Jaribu tena.", 'bot');
+            }
+        });
+
+        // Focus input on load
+        userInput.focus();
+    </script>
+</body>
+
+</html>
